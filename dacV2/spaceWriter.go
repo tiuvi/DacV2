@@ -1,5 +1,27 @@
 package dacv2
 
+ 
+func (Space *Space) SetAt(offSet int64, buf []byte) (err error) {
+
+	_, err = Space.File.WriteAt(buf, offSet)
+	if err != nil {
+		return err
+	}
+
+	return
+}
+
+func (Space *Space) SetAtRange(buf []byte , nRange int64, bandwidth int64) (err error) {
+
+	var offSet int64 = nRange * bandwidth
+
+	_, err = Space.File.WriteAt(buf, offSet)
+	if err != nil {
+		return err
+	}
+
+	return
+}
 
 func (Space *Space) SetField(columnName int64, buf []byte) (err error) {
 

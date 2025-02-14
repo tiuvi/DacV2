@@ -7,6 +7,78 @@ import (
 func init() {
 
 
+	Routes["/SetAt"] = func(res http.ResponseWriter, req *http.Request) {
+
+		HR , sf , err  := handleRequestCore(res , req)
+		if err != nil {
+			HR.ErrorStatusBadRequest(err.Error())
+			return
+		}
+
+		offSet , err := HR.ReadUrlInt64("offSet")
+		if err != nil {
+			HR.ErrorStatusBadRequest(err.Error())
+			return
+		}
+
+		body, err := HR.ReadBodyBytes()
+		if err != nil {
+			HR.ErrorStatusInternalServerError(err.Error())
+			return
+		}
+
+		err = sf.SetAt(offSet, body)
+		if err != nil {
+			HR.ErrorStatusInternalServerError(err.Error())
+			return
+		}
+
+		err = HR.WriteOk()
+		if err != nil {
+			println("databaseServer - WriteOk: ", err.Error())
+			return
+		}
+	}
+
+	Routes["/SetAtRange"] = func(res http.ResponseWriter, req *http.Request) {
+
+		HR , sf , err  := handleRequestCore(res , req)
+		if err != nil {
+			HR.ErrorStatusBadRequest(err.Error())
+			return
+		}
+
+		nRange , err := HR.ReadUrlInt64("nRange")
+		if err != nil {
+			HR.ErrorStatusBadRequest(err.Error())
+			return
+		}
+
+		bandwidth , err := HR.ReadUrlInt64("bandwidth")
+		if err != nil {
+			HR.ErrorStatusBadRequest(err.Error())
+			return
+		}
+
+		body, err := HR.ReadBodyBytes()
+		if err != nil {
+			HR.ErrorStatusInternalServerError(err.Error())
+			return
+		}
+
+		err = sf.SetAtRange(body , nRange, bandwidth )
+		if err != nil {
+			HR.ErrorStatusInternalServerError(err.Error())
+			return
+		}
+
+		err = HR.WriteOk()
+		if err != nil {
+			println("databaseServer - WriteOk: ", err.Error())
+			return
+		}
+	}
+
 	//Añadir SetLineLimit y NewLineLimit si supera el tamaño maximo que de error
 	//Esto es para las interfaces que ya no se validan en el cliente.
 	Routes["/SetField"] = func(res http.ResponseWriter, req *http.Request) {

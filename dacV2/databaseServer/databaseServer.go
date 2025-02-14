@@ -6,6 +6,7 @@ import (
 	. "dacV2/httpReceiver"
 	. "dacV2/shell"
 	"net/http"
+	"path/filepath"
 	"strconv"
 	"syscall"
 	"time"
@@ -80,6 +81,10 @@ func init() {
 			}
 
 		}
+
+		globalPath = filepath.Join(globalPath , "database")
+
+
 	}
 }
 
@@ -167,4 +172,5 @@ func NewServerDacV2() {
 	}
 
 	dan.InitDan(publicKeyPath, privateKeyPath)
+
 }

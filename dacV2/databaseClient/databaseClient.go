@@ -14,6 +14,7 @@ func NewSpaceDB(baseURL string, port uint16,
 	fieldsMapName int64, IndexSizeFields map[int64][3]int64,
 	linesMapName int64, IndexSizeColumns map[int64][3]int64,
 	dirPath ...string) *SpaceDB {
+		
 	return &SpaceDB{
 		BaseURL:          baseURL,
 		Port:             port,
