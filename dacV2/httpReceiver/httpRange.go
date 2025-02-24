@@ -75,27 +75,39 @@ func CalcRange(startRangeHeader int64, fileLen int64, bandwidth int64) (nRange i
 }
 
 // Esta funcion es un punto final y maneja los errores internamente.
-func (SK *HttpReceiver) ServerFileToClientRanges(fileCache *SpaceCacheExpiration, typeContent string, fileSize int64, bandwidth int64, dirName ...string) {
+func (SK *HttpReceiver) ServerFileToClientRanges(fileCache *SpaceCacheExpiration, typeContent string, bandwidth int64, dirName ...string) {
+
+	space, err := fileCache.OpenSpaceRange( dirName...)
+	if err != nil {
+		SK.ErrorStatusInternalServerError(err.Error())
+		return
+	}
+
+	if space.Size == 0 {
+
+		fileSize , err := space.FileSize()
+		if err != nil {
+			SK.ErrorStatusInternalServerError(err.Error())
+			return
+		}
+		//Modificacion del space en la cache.
+		space.Size = fileSize
+	}
+
 
 	//La primera estapa es solicitar los rangos
 	startRangeHeader, _, err := SK.ReadHeaderRangesRaw()
 	if err != nil {
-		SK.WriteContentLength(fileSize)
+		SK.WriteContentLength(space.Size)
 		SK.WriteBandwidth(bandwidth)
 		SK.WriteContentType(typeContent)
 		SK.WriteHeaderCode(206)
 		return
 	}
 
-	nRange, startRange, endRange := CalcRange(startRangeHeader, fileSize, bandwidth)
+	nRange, startRange, endRange := CalcRange(startRangeHeader, space.Size, bandwidth)
 
-	space, err := fileCache.OpenSpaceRange(fileSize, dirName...)
-	if err != nil {
-		SK.ErrorStatusInternalServerError(err.Error())
-		return
-	}
-
-	buffer, err := space.GetFieldRange(0, bandwidth, nRange-1)
+	buffer, err := space.GetAtRange( nRange-1 , bandwidth)
 	if err != nil {
 		SK.ErrorStatusInternalServerError(err.Error())
 		return
@@ -106,7 +118,7 @@ func (SK *HttpReceiver) ServerFileToClientRanges(fileCache *SpaceCacheExpiration
 		buffer = buffer[startRangeHeader-startRange:]
 	}
 
-	SK.WriteHeaderContentRanges(startRangeHeader, endRange, fileSize)
+	SK.WriteHeaderContentRanges(startRangeHeader, endRange, space.Size)
 
 	SK.WriteHeaderCode(206)
 
@@ -115,7 +127,6 @@ func (SK *HttpReceiver) ServerFileToClientRanges(fileCache *SpaceCacheExpiration
 		SK.ErrorStatusInternalServerError(err.Error())
 		return
 	}
-
 }
 
 func (SK *HttpReceiver) ClientFileToServerRanges(fileCache *SpaceCacheExpiration, fileSize int64, bandwidth int64, dirName ...string) {
@@ -143,13 +154,13 @@ func (SK *HttpReceiver) ClientFileToServerRanges(fileCache *SpaceCacheExpiration
 		return
 	}
 
-	space, err := fileCache.OpenSpaceRange(fileSize, dirName...)
+	space, err := fileCache.OpenSpaceRange(dirName...)
 	if err != nil {
 		SK.ErrorStatusInternalServerError(err.Error())
 		return
 	}
 
-	err = space.SetFieldRange(0, body, bandwidth, nRange-1)
+	err = space.SetAtRange( body,  nRange-1 , bandwidth)
 	if err != nil {
 		SK.ErrorStatusBadRequest(err.Error())
 		return
@@ -160,5 +171,4 @@ func (SK *HttpReceiver) ClientFileToServerRanges(fileCache *SpaceCacheExpiration
 		SK.ErrorStatusBadRequest(err.Error())
 		return
 	}
-
 }

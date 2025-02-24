@@ -47,7 +47,7 @@ func init() {
 			return
 		}
 	}
-
+ 
 	Routes["/TruncateFile"] = func(res http.ResponseWriter, req *http.Request) {
 
 		HR := InitHttpReceiver(res, req)
@@ -63,7 +63,7 @@ func init() {
 			HR.ErrorStatusBadRequest(err.Error())
 			return
 		}
-
+	
 		err = sf.TruncateFile(size)
 		if err != nil {
 			HR.ErrorStatusBadRequest(err.Error())

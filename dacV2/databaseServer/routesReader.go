@@ -10,7 +10,7 @@ func init() {
 
 	Routes["/GetAt"] = func(res http.ResponseWriter, req *http.Request) {
 
-		HR , sf , err  := handleRequestCore(res , req)
+		HR , sf , err  := handleRequestNoMaps(res , req)
 		if err != nil {
 			HR.ErrorStatusBadRequest(err.Error())
 			return
@@ -43,7 +43,7 @@ func init() {
 
 	Routes["/GetAtRange"] = func(res http.ResponseWriter, req *http.Request) {
 
-		HR , sf , err  := handleRequestCore(res , req)
+		HR , sf , err  := handleRequestNoMaps(res , req)
 		if err != nil {
 			HR.ErrorStatusBadRequest(err.Error())
 			return

@@ -25,3 +25,12 @@ func NewSpaceDB(baseURL string, port uint16,
 		DirPath:          dirPath,
 	}
 }
+
+func NewSpaceDBContent(baseURL string, port uint16,dirPath ...string) *SpaceDB {
+		
+	return &SpaceDB{
+		BaseURL:          baseURL,
+		Port:             port,
+		DirPath:          dirPath,
+	}
+}

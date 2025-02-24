@@ -25,15 +25,17 @@ func (Space *Space) DeleteFile()error {
 
 func (Space *Space) TruncateFile(size int64)error {
 
+    Space.AtomicCountLines.Store(0)
+
     return Space.File.Truncate(size)
 }
 
 func (Space *Space) TruncateZeroFile()error {
 
-    return Space.File.Truncate(0)
+    return Space.TruncateFile(0)
 }
 
 func (Space *Space) TruncateFileLine(line int64)error {
 
-    return Space.File.Truncate(Space.SizeField+(line*Space.SizeLine))
+    return Space.TruncateFile(Space.SizeField+(line*Space.SizeLine))
 }

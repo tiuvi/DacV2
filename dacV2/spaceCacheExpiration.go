@@ -77,8 +77,8 @@ func (spaceCache *SpaceCacheExpiration) Open(mapFields map[int64][3]int64, sizeF
 
 	return space, nil
 }
-
-func (spaceCache *SpaceCacheExpiration) OpenSpaceRange(fileSize int64, dirPath ...string) (space *Space, err error) {
+ 
+func (spaceCache *SpaceCacheExpiration) OpenSpaceRange(dirPath ...string) (space *Space, err error) {
 
 	filePath := filepath.Join(dirPath...)
 
@@ -97,12 +97,7 @@ func (spaceCache *SpaceCacheExpiration) OpenSpaceRange(fileSize int64, dirPath .
 		return entry.Space, nil
 	}
 
-	sizeField, mapFields, err := CreateMap([]SpaceList{{Name: 0, Len: fileSize}})
-	if err != nil {
-		return
-	}
-
-	space, err = NewSpace(sizeField, mapFields,  nil, 0, dirPath...)
+	space, err = NewSpaceContent(dirPath...)
 	if err != nil {
 		return
 	}

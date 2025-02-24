@@ -1,17 +1,49 @@
 package databaseClient
 
 import (
+	. "dacV2/httpSender"
 	"errors"
 )
 
-func (spaceDB *SpaceDB) SetAt(offSet int64, data []byte) (err error) {
+func CreateDirectory(url string, port uint16, dirPath ...string) (err error) {
 
-	client, err := handleRequestCore(spaceDB, "SetAt")
+	client, err := NewBuildURL(url, port, "CreateDirectory")
 	if err != nil {
 		return
 	}
 
-	client.WriteUrlInt64("offSet" , offSet)
+	client.WriteUrlMultipleRaw("dirPath", dirPath)
+
+	requestBuild, err := client.CreateGetRequest()
+	if err != nil {
+		return
+	}
+
+	handlerResponse, err := requestBuild.StartSender()
+	if err != nil {
+		return
+	}
+
+	body, err := handlerResponse.ReadBodyString()
+	if err != nil {
+		return
+	}
+
+	if body != "ok" {
+		return errors.New(body)
+	}
+
+	return
+}
+ 
+func (spaceDB *SpaceDB) SetAt(offSet int64, data []byte) (err error) {
+
+	client, err := handleRequestNoMaps(spaceDB, "SetAt")
+	if err != nil {
+		return
+	}
+
+	client.WriteUrlInt64("offSet", offSet)
 
 	requestBuild, err := client.CreatePostRequest(data)
 	if err != nil {
@@ -37,14 +69,14 @@ func (spaceDB *SpaceDB) SetAt(offSet int64, data []byte) (err error) {
 
 func (spaceDB *SpaceDB) SetAtRange(data []byte, nRange int64, bandwidth int64) (err error) {
 
-	client, err := handleRequestCore(spaceDB, "SetAtRange")
+	client, err := handleRequestNoMaps(spaceDB, "SetAtRange")
 	if err != nil {
 		return
 	}
 
-	client.WriteUrlInt64("nRange" , nRange)
+	client.WriteUrlInt64("nRange", nRange)
 
-	client.WriteUrlInt64("bandwidth" , bandwidth)
+	client.WriteUrlInt64("bandwidth", bandwidth)
 
 	requestBuild, err := client.CreatePostRequest(data)
 	if err != nil {

@@ -1,8 +1,10 @@
 package dan
 
 import (
+	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -15,7 +17,7 @@ func NewDanSpace(port uint16) *DanSpace {
 
 	mux := http.NewServeMux()
 	
-	return &DanSpace{
+	dan:=  &DanSpace{
 
 		Mux: mux,
 		Server: &http.Server{
@@ -23,7 +25,7 @@ func NewDanSpace(port uint16) *DanSpace {
 			Addr: ":" + strconv.FormatUint(uint64(port), 10),
 
 			//TimeoutHandler devuelve un Handler que ejecuta h con el límite de tiempo dado.
-			Handler: http.TimeoutHandler(mux, 300*time.Second, "Timeout!\n"),
+			Handler: http.TimeoutHandler(mux, 30*time.Second, "Timeout!\n"),
 
 			//ReadTimeout es la duración máxima para leer la solicitud completa,
 			ReadTimeout: 30 * time.Second,
@@ -32,7 +34,7 @@ func NewDanSpace(port uint16) *DanSpace {
 			ReadHeaderTimeout: 30 * time.Second,
 
 			//WriteTimeout es la duración máxima antes de que se agote el tiempo de escritura de la respuesta.
-			WriteTimeout: 300 * time.Second,
+			WriteTimeout: 30 * time.Second,
 
 			// IdleTimeout es la cantidad máxima de tiempo para esperar la próxima solicitud cuando se habilita la función Keep-Alives. Si IdleTimeout es cero, se utiliza el valor de ReadTimeout.
 			IdleTimeout: 60 * time.Second,
@@ -54,88 +56,47 @@ func NewDanSpace(port uint16) *DanSpace {
 		},
 	}
 
-}
-
-func NewDanSpaceSocket(port uint16) *DanSpace {
-
-	mux := http.NewServeMux()
-	
-	dan := &DanSpace{
-
-		Mux: mux,
-		Server: &http.Server{
-
-			Addr: ":" + strconv.FormatUint(uint64(port), 10),
-
-			//TimeoutHandler devuelve un Handler que ejecuta h con el límite de tiempo dado.
-			Handler: mux,
-
-			//ReadTimeout es la duración máxima para leer la solicitud completa,
-			ReadTimeout: 0,
-
-			//ReadHeaderTimeout es la cantidad de tiempo permitido para leer los encabezados de solicitud.
-			ReadHeaderTimeout: 0,
-
-			//WriteTimeout es la duración máxima antes de que se agote el tiempo de escritura de la respuesta.
-			WriteTimeout: 0,
-
-			// IdleTimeout es la cantidad máxima de tiempo para esperar la próxima solicitud cuando se habilita la función Keep-Alives. Si IdleTimeout es cero, se utiliza el valor de ReadTimeout.
-			IdleTimeout: 0,
-
-			// MaxHeaderBytes controla la cantidad máxima de bytes que el servidor leerá al analizar las claves y valores del encabezado de la solicitud, incluida la línea de solicitud.
-			MaxHeaderBytes: http.DefaultMaxHeaderBytes,
-			
-			// TLSNextProto especifica opcionalmente una función para asumir el control propiedad de la
-			// conexión TLS proporcionada cuando un ALPN se ha producido una actualización del protocolo.
-			// En caso de llamar a esta funcion http2 no funcionara
-			// TLSNextProto: make(map[string]func(*http.Server, *tls.Conn, http.Handler)),
-
-			//ConnState especifica una función de devolución de llamada opcional que se llama cuando
-			//la conexión de un cliente cambia de estado.
-			// ConnState func(net.Conn, ConnState)
-
-			// ErrorLog especifica un registrador opcional para errores al aceptar conexiones, comportamiento inesperado de los controladores y errores subyacentes del sistema de archivos.
-			//ErrorLog *log.Logger
-		},
-	}
-
-	dan.Server.SetKeepAlivesEnabled(false)
-
 	return dan
 }
 
+func (dan *DanSpace) NewBaseRoute(handler func(http.ResponseWriter, *http.Request)) {
+	
+	// Concatenar la base con el host (en este caso, solo se usa el host como referencia)
+	dan.Mux.HandleFunc("/", func(res http.ResponseWriter, req *http.Request) {
 
+		// Verificar que la ruta solicitada es exactamente "/"
+		if req.URL.Path == "/" {
+			handler(res, req) // Usar el handler proporcionado
+			return
+		}
 
+		// Si no es "/", devolver un 404
+		http.NotFound(res, req)
+	})
+}
 
-/*
-Añade una nueva ruta a dan
+func (dan *DanSpace) NewRoute(pattern string, handler func(http.ResponseWriter, *http.Request))(err error){
 
-example:
-
-danSpace.NewRoute("tiuvi.com", func(response http.ResponseWriter, request *http.Request) {
-
-})
-*/
-func (dan *DanSpace) NewRoute(pattern string, handler func(http.ResponseWriter, *http.Request)) {
+	if strings.HasSuffix(pattern, "/") {
+		return errors.New("la ruta no debe terminar con un slash")
+	}
 
 	dan.Mux.HandleFunc(pattern, handler)
 
+	return
 }
 
-/*
-Esta funcion inicia un Midleware
+func (dan *DanSpace) NewRouteWildcard(pattern string, handler func(http.ResponseWriter, *http.Request))(err error){
 
-Ejemplo de midleware:
-
-	func midleware(handler http.HandlerFunc) http.HandlerFunc {
-		//Devuelve un manejador de la respuesta
-		return func(response http.ResponseWriter, request *http.Request) {
-
-			//Ejecuta el siguiente manejador
-			handler(response, request)
-		}
+	if !strings.HasSuffix(pattern, "/") {
+		return errors.New("la ruta debe terminar con una slash")
 	}
-*/
+
+	dan.Mux.HandleFunc(pattern, handler)
+	
+	return
+}
+
 func (dan *DanSpace) NewMidleware(pattern string,
 	midleware func(handler http.HandlerFunc) http.HandlerFunc,
 	handler func(http.ResponseWriter, *http.Request)) {
@@ -144,21 +105,6 @@ func (dan *DanSpace) NewMidleware(pattern string,
 
 }
 
-/*
-Esta funcion inicia una cadena de Midleware
-
-Ejemplo de midleware:
-
-func midleware(handler http.HandlerFunc) http.HandlerFunc {
-
-		//Devuelve el manejo de la respuesta
-		return func(response http.ResponseWriter, request *http.Request) {
-
-			//Ejecuta el siguiente manejo de la respueta
-			handler(response, request)
-		}
-	}
-*/
 func (dan *DanSpace) NewChainMidleware(
 	pattern string,
 	middlewares []func(http.HandlerFunc) http.HandlerFunc,

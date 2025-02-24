@@ -7,6 +7,21 @@ import (
 	"net/http"
 )
 
+func handleRequestNoMaps(res http.ResponseWriter, req *http.Request, )(HR *HttpReceiver, sf *dacv2.Space , err error){
+
+	HR = InitHttpReceiver(res, req)
+
+	dirPath := HR.ReadUrlMultiplesRaw("dirPath")
+
+	sf, err = globalCache.OpenSpaceRange(append([]string{globalPath}, dirPath...)... )
+	if err != nil {
+		HR.ErrorStatusInternalServerError(err.Error())
+		return
+	}
+	
+	return
+}
+
 func handleRequestCore(res http.ResponseWriter, req *http.Request, )(HR *HttpReceiver, sf *dacv2.Space , err error){
 
 	HR = InitHttpReceiver(res, req)

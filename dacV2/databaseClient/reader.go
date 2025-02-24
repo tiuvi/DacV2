@@ -3,7 +3,7 @@ package databaseClient
 
 func (spaceDB *SpaceDB) GetAt(offSet int64 ,sizeBuffer int64) (body []byte, err error) {
 
-	client, err := handleRequestCore(spaceDB, "GetAt")
+	client, err := handleRequestNoMaps(spaceDB, "GetAt")
 	if err != nil {
 		return
 	}
@@ -27,7 +27,7 @@ func (spaceDB *SpaceDB) GetAt(offSet int64 ,sizeBuffer int64) (body []byte, err 
 
 func (spaceDB *SpaceDB) GetAtRange(nRange int64 ,bandwidth int64) (body []byte, err error) {
 
-	client, err := handleRequestCore(spaceDB, "GetAtRange")
+	client, err := handleRequestNoMaps(spaceDB, "GetAtRange")
 	if err != nil {
 		return
 	}

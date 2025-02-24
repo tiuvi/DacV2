@@ -5,6 +5,18 @@ import (
 	"strconv"
 )
 
+func handleRequestNoMaps(spaceDB *SpaceDB, endpoint string) (client *HttpClientBuilder, err error) {
+
+	client, err = NewBuildURL(spaceDB.BaseURL, spaceDB.Port, endpoint)
+	if err != nil {
+		return
+	}
+
+	client.WriteUrlMultipleRaw("dirPath", spaceDB.DirPath)
+
+	return
+}
+
 func handleRequestCore(spaceDB *SpaceDB, endpoint string) (client *HttpClientBuilder, err error) {
 
 	client, err = NewBuildURL(spaceDB.BaseURL, spaceDB.Port, endpoint)

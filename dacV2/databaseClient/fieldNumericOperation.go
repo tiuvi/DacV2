@@ -28,6 +28,5 @@ func (spaceDB *SpaceDB) AtomicFieldSumInt64(field int64, increment int64) (resul
 		return
 	}
 
-	println("len(body)", len(body))
 	return dacv2.BytesToInt64(body), nil
 }

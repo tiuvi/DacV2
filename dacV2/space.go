@@ -24,6 +24,7 @@ type Space struct {
 	*/
 	Mu sync.RWMutex
 
+	Size            int64
 	IndexSizeFields map[int64][3]int64
 	SizeField       int64
 
@@ -31,6 +32,18 @@ type Space struct {
 	IndexSizeColumns map[int64][3]int64
 	SizeLine         int64
 	AtomicCountLines atomic.Int64
+}
+
+func CreateDirectory(dirPath ...string) (err error) {
+
+	dir := filepath.Join(dirPath...)
+
+	err = os.MkdirAll(dir, os.ModePerm)
+	if err != nil {
+		return
+	}
+
+	return
 }
 
 func OpenFileOrCreate(dirPath ...string) (file *os.File, filePath string, extension string, dir string, err error) {
@@ -138,8 +151,6 @@ func NewSpace(mapFields map[int64][3]int64, sizeField int64, mapLines map[int64]
 
 	return
 }
-
-
 
 func NewSpaceIfExist(mapFields map[int64][3]int64, sizeField int64, mapLines map[int64][3]int64, sizeLine int64, dirPath ...string) (newSpace *Space, err error) {
 

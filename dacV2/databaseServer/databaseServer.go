@@ -92,11 +92,6 @@ func init() {
 
 	Routes["/"] = func(res http.ResponseWriter, req *http.Request) {
 
-		if req.URL.Path != "/" {
-			http.NotFound(res, req)
-			return
-		}
-		
 		SK := InitHttpReceiver(res, req)
 
 		if SK.ExistUrl("terminal") {
@@ -118,7 +113,7 @@ func init() {
 }
 
 
-func NewServerDacV2() {
+func NewServerHttpsDacV2() {
 
 	//path keyRoutes publicKey privateKey host port
 	pathFlag := InitFlagString("path", "La carpeta donde se alojara la base de datos")
@@ -158,7 +153,17 @@ func NewServerDacV2() {
 
 	//Cargamos todas las rutas.
 	for path, route := range Routes {
-		dan.NewRoute(path, route)
+
+		if path == "/"{
+			dan.NewBaseRoute(route)
+			continue
+		}
+
+		err := dan.NewRoute(path, route)
+		if err != nil {
+			ErrorFatal(err.Error())
+		}
+
 	}
 
 	publicKeyPath, err := CreateTempBytes([]byte(publicKey))
@@ -173,4 +178,42 @@ func NewServerDacV2() {
 
 	dan.InitDan(publicKeyPath, privateKeyPath)
 
+}
+
+func NewServerHttpDacV2() {
+
+	//path keyRoutes publicKey privateKey host port
+	pathFlag := InitFlagString("path", "La carpeta donde se alojara la base de datos")
+
+	keyRoutesFlag := InitFlagString("keyRoutes", "Una key que se compara en cada peticion")
+
+	hostFlag := InitFlagString("host", "Elige un dominio")
+
+	portFlag := InitFlagInt64("port", "Elige el valor del puerto.")
+
+	InitParse()
+
+	globalPath = pathFlag.GetStringReq()
+
+	keyRoutes = keyRoutesFlag.GetStringReq()
+
+	_ = hostFlag.GetStringReq()
+
+	port := portFlag.GetInt64Req()
+
+	globalCache = NewSpaceCacheExpiration(time.Hour*12, time.Hour*24)
+
+	for _, fileDac := range RoutesDac {
+
+		fileDac()
+	}
+
+	dan := NewDanSpace(uint16(port))
+
+	//Cargamos todas las rutas.
+	for path, route := range Routes {
+		dan.NewRoute(path, route)
+	}
+
+	dan.InitDanInsecure()
 }
