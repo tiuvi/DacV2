@@ -50,6 +50,7 @@ func testMysql() {
 		log.Fatal("❌ Error al crear la tabla:", err)
 	}
 
+	/*
 	start := time.Now()
 
 	insertQuery := `INSERT INTO boolean_table (value) VALUES (?)`
@@ -65,35 +66,35 @@ func testMysql() {
 
 	duration := time.Since(start)
 	fmt.Printf("✅ Inserción completa mysql. Tiempo transcurrido: %s\n", duration)
+*/
+	println("comenzando lectua")
+	start := time.Now()
 
-	
-	query := "SELECT id, value FROM boolean_table LIMIT " + strconv.Itoa(totalOperation)
-	start = time.Now()
+	for i := 0; i < totalOperation; i++ {
 
-	// Leer los primeros 1000 registros
-	rows, err := db.Query(query)
-	if err != nil {
-		log.Fatal("❌ Error al leer datos:", err)
-	}
-	defer rows.Close()
+		query := "SELECT id, value FROM boolean_table LIMIT 1 OFFSET " + strconv.Itoa(i)
 
-	for rows.Next() {
-		var id int
-		var value bool
-		err := rows.Scan(&id, &value)
+		rows, err := db.Query(query)
 		if err != nil {
-			log.Fatal("❌ Error al escanear datos:", err)
+			log.Fatal("❌ Error al leer datos:", err)
 		}
+
+		for rows.Next() {
+			var id int
+			var value bool
+			err := rows.Scan(&id, &value)
+			if err != nil {
+				log.Fatal("❌ Error al escanear datos:", err)
+			}
+		}
+
+		rows.Close() // Cerrar cada consulta después de leer
+		println("leyendo", i)
 	}
 
-	duration = time.Since(start)
-	fmt.Printf("✅ Lectura completa mysql. Tiempo transcurrido: %s\n", duration)
+	duration := time.Since(start)
+	fmt.Printf("✅ Lectura simulada completa. Tiempo transcurrido: %s\n", duration)
 
-
-	// Verifica si hubo algún error durante la iteración
-	if err = rows.Err(); err != nil {
-		log.Fatal("❌ Error durante la iteración de filas:", err)
-	}
 	
 	deleteQuery := `DELETE FROM boolean_table`
 	_, err = db.Exec(deleteQuery)

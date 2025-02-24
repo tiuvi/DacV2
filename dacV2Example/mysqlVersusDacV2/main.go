@@ -5,8 +5,9 @@ package main
 func main() {
 
 
-	testDac()
+	//testDac()
 
 	//testMysql()
 
+	testRedis()
 }

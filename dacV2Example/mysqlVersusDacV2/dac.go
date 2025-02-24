@@ -13,7 +13,7 @@ const (
 	col1 int64 = 1
 )
 
-const totalOperation = 10000000
+const totalOperation = 1000000
 
 func testDac(){
 
