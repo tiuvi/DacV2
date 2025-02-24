@@ -34,5 +34,5 @@
 ✅ Lectura completa dacv2. Tiempo transcurrido: 5.5s  
 
 
-
+Además, MySQL ocupa aproximadamente 450 MB en mi sistema. Por otro lado, el sistema DAC puede manejar alrededor de 1,000,000 de archivos en caché, lo que requiere aproximadamente 800 MB, dependiendo de los archivos que se tengan abiertos en caché.
 
